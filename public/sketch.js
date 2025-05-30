@@ -95,9 +95,8 @@ function setup() {
 	socket.on('glitch', glitch); // For this one specifically we need to have a cooldown timer where the message to unglitch is sent, either in arduino or node
 	socket.on('flash', flashGlitchActivate); //flips a boolean
 	socket.on('increaseStreak', incrementStreak); //increments streaking
-	
-
-
+	socket.on('decreaseStreak', decrementStreak);
+	socket.on('randomizeStreak', randomizeStreak);
 
 	//arbitrary, just need to set something here
 	currentImg = imgTranshuman;
@@ -191,6 +190,8 @@ function mouseClicked() {
 
 function keyPressed() {
 	//These kinds of things will be what the web socket messages are for, though I'm not entirely sure how I want that to look I could probably get away with some arbitrary decisions
+	//
+	//first two change how much the streaks move left to right
 	if (keyCode == UP_ARROW){
 		maxXChange = maxXChange + 10;
 		console.log(maxXChange);
@@ -199,6 +200,7 @@ function keyPressed() {
 		maxXChange = maxXChange - 10;
 		console.log(maxXChange);
 	}
+	//second two change how dense the streaking is (left makes it denser)
 	if (keyCode == LEFT_ARROW && hFactor > 5){
 		hFactor = hFactor - 5;
 		console.log(hFactor);
@@ -207,6 +209,7 @@ function keyPressed() {
 		hFactor = hFactor + 5;
 		console.log(hFactor);
 	}
+	//third two change how much streaking happens... honestly they both look weird in their own way as long as it doensn't get too low. I think it'd just be best if a trigger sets this to a random value
 	if (key == 'h'){
 		streakNum--;
 	}
@@ -295,9 +298,25 @@ function screenBlocks(){
 		rect(xLoc, yLoc, x, y);
 	}
 }
+//test these and see how they work
+//no cooldown timers so good to work with the rfid readers since you can boop those to impunity if you want
 function incrementStreak(){
-	
+	maxXChange = maxXChange + random(20);
+		if(hFactor > 5){
+		hFactor = hFactor - 5;
+	}
 }
+
+function decrementStreak(){
+	maxXChange = maxXChange - random(20);
+	hFactor = hFactor + 5;
+
+}
+
+function randomizeStreak(){
+	streakNum = round(random(20));
+}
+
 	/*Each time it cycles through the code
 	add a random number between 2 and 4 to our random number
 	do a modulo operation 
