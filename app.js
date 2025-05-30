@@ -26,18 +26,22 @@ var udpPort = new osc.UDPPort({
 //Reciving osc messages
 udpPort.open();
 udpPort.on("message", function (oscMsg, timeTag, info) {
-    //console.log("An OSC message just arrived!", oscMsg);//lets you read raw osc message
+    console.log("An OSC message just arrived!", oscMsg);//lets you read raw osc message
     //we get a message something like:  { address: '/amp', args: [ { type: 'f', value: 93.71991729736328 } ] }
 
-    let value = oscMsg.args[0].value; //parse osc. 
-    console.log(value);
-	if(value == "sketch2"){ //if the osc message has the right tag
-		io.sockets.emit('socket_message', oscMsg.args[1].value); //send the socket message
+    /*To me what makes most sense here is:
+    
+    */
+    let value = oscMsg.args[0].value;
+    let address = oscMsg.address;//parse osc. 
+	if(address == "/sketch2"){ //if the osc message has the right tag
+		io.sockets.emit(glitch); //send the socket message
         //Depending on what I have coming in I might want to make the above line a little more nuanced
         //or it's fine how it is, or I could do that on the client side
-        console.log("Sending to P5 Sketch: " + oscMsg.args[1].value)
+        console.log("Sending to P5 Sketch: " + value); 
 	}
 });
+
 
 //Web socket code
 //Remember in order to make our public sketch a socket.io client we need to reference sockets.io in the html file (see that file) and the sketch itself (see that file too)

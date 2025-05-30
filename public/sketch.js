@@ -37,6 +37,11 @@ let time;
 let prevTime = 0;
 let interval = 10000;
 
+let glitchCooldownInterval; //randomly set when a glitch trigger is sent
+let glitchCooldownTimer; //This is fixed at a time when the trigger is sent and then it flips back around when it 
+let flashCooldownInterval; //also 
+let flashCooldownTimer;
+
 //Loading all our images
 function preload() {
 	imgTranshuman = loadImage("assets/transhuman.jpg"); 
@@ -84,13 +89,16 @@ function setup() {
 	imgGender.filter(POSTERIZE, 5);
 
 	//socket connection code, doensn't work unless node server is running 
-	//socket = io.connect('http://localhost:1312');
+	socket = io.connect('http://localhost:1312');
 
 	//function that takes the message from the node server and runs a function depending on what comes in (do the functions need to have parentheses?)
-	//socket.on('sketch2Glitch', glitch); // For this one specifically we need to have a cooldown timer where the message to unglitch is sent, either in arduino or node
-	//socket.on('sketch2Flash', flashGlitchActivate); //flips a boolean
-	//socket.on('sketch2IncreaseStreak', incrementStreak); //increments streaking
+	socket.on('glitch', glitch); // For this one specifically we need to have a cooldown timer where the message to unglitch is sent, either in arduino or node
+	socket.on('flash', flashGlitchActivate); //flips a boolean
+	socket.on('increaseStreak', incrementStreak); //increments streaking
 	
+
+
+
 	//arbitrary, just need to set something here
 	currentImg = imgTranshuman;
 	subversiveImg = imgTransFlag;
@@ -136,13 +144,28 @@ function draw() {
   }
 	
   //Flash glitch code
-  if (flashGlitch == true){
+  if (flashGlitch == true && glitching == false){ //idk how I feel about the glitching==false here, see how it looks?
 	flashGlitchGo();
   }
 
   if (screenBlocking == true){
 	screenBlocks();
   }
+
+  //code to flip glitching back off after cooldown time
+  if(glitching == true){ //if glitching is active
+	if(time - glitchCooldownTimer > glitchCooldownInterval){
+		glitching = false;
+	}
+  }
+
+  //doing same thing with flashing
+  if(flashGlitch == true){
+	if(time - flashCooldownTimer > flashCooldownInterval){
+		flashGlitch = false;
+	}
+  }
+
   
 
 }
@@ -163,10 +186,11 @@ function drawStreak(ourImg) {
 
 //This function is going to be superfluous once the socket/osc connection is set up but it's cool to have it here for debugging
 function mouseClicked() {
-	glitch(666);
+	glitch();
 }
 
 function keyPressed() {
+	//These kinds of things will be what the web socket messages are for, though I'm not entirely sure how I want that to look I could probably get away with some arbitrary decisions
 	if (keyCode == UP_ARROW){
 		maxXChange = maxXChange + 10;
 		console.log(maxXChange);
@@ -192,20 +216,27 @@ function keyPressed() {
 	
 	//This would be if a certain RFID tag is scanned, key press function is just filling the void currently
 	if (key == 'g'){
-		flashGlitch = !flashGlitch;
 		console.log("Flash glitch");
+		flashGlitchActivate();
 	}
 
 }
 
 //These functions are mostly designed to accept triggers from node server and flip booleans. The meaty code is run in the main draw loop
-function glitch(data){ //runs when specific osc code comes in or mouse is clicked
-	glitching = !glitching;
-	console.log(data.note + " " + data.vel);
+function glitch(){ //runs when specific osc code comes in or mouse is clicked
+	if (glitching == false){ //code does nothing if glitching is already happening
+	glitching = true;
+	glitchCooldownInterval = (random(30000)) + 10000; //Glitching occurs for at least 10 seconds, up to 40 seconds. Change this if desired.
+	glitchCooldownTimer = time; //sets cooldown timer to be equal to current time
+	}
 }
 
 function flashGlitchActivate(){
-	flashGlitch = true;
+	if (flashGlitch == false){
+	flashGlitch = true; 
+	flashCooldownInterval = (random(30000)) + 10000;
+	flashCooldownTimer = time;
+	}
 }
 
 function randomizeImg(){
@@ -264,7 +295,9 @@ function screenBlocks(){
 		rect(xLoc, yLoc, x, y);
 	}
 }
-
+function incrementStreak(){
+	
+}
 	/*Each time it cycles through the code
 	add a random number between 2 and 4 to our random number
 	do a modulo operation 
