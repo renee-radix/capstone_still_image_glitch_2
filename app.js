@@ -34,10 +34,11 @@ udpPort.on("message", function (oscMsg, timeTag, info) {
     */
     let value = oscMsg.args[0].value;
     let address = oscMsg.address;//parse osc. 
-	if(address == "/sketch2"){ //if the osc message has the right tag
-		io.sockets.emit(glitch); //send the socket message
-        //Depending on what I have coming in I might want to make the above line a little more nuanced
-        //or it's fine how it is, or I could do that on the client side
+	if(address == "/sketch2" && value == 0){ //if the osc message has the right tag
+	    io.sockets.emit(glitch); //send the socket message
+	    console.log("Sending to P5 sketch");
+    }else if(address == "/sketch2" && value == 1){
+	io.sockets.emit(flash);
         console.log("Sending to P5 Sketch: " + value); 
 	}
 });

@@ -1,4 +1,3 @@
-
 //images this sketch uses
 let imgTranshuman;
 let imgBrain;
@@ -94,9 +93,6 @@ function setup() {
 	//function that takes the message from the node server and runs a function depending on what comes in (do the functions need to have parentheses?)
 	socket.on('glitch', glitch); // For this one specifically we need to have a cooldown timer where the message to unglitch is sent, either in arduino or node
 	socket.on('flash', flashGlitchActivate); //flips a boolean
-	socket.on('increaseStreak', incrementStreak); //increments streaking
-	socket.on('decreaseStreak', decrementStreak);
-	socket.on('randomizeStreak', randomizeStreak);
 
 	//arbitrary, just need to set something here
 	currentImg = imgTranshuman;
@@ -114,7 +110,18 @@ function draw() {
       randomizeImg();
 	  console.log("Randomizing");
     }
-  }
+	if(randNum < 3.3){
+			incrementStreak();
+		}else{
+			if(randNum < 6.6 && randNum > 3.3){
+				decrementStreak();
+			}else{
+				if(randNum > 6.6){
+					randomizeStreak();
+				}
+			}
+		}
+	}
   
   //Glitch streak code
   if (glitching == true && flashGlitch == false){
@@ -182,8 +189,7 @@ function drawStreak(ourImg) {
 	image(ourImg, xChange, -maxYChange + y + yChange, ourImg.width, h, 0, y, ourImg.width, h);
 	//copy(img, 0, y, img.width, h, xChange - maxXChange, -maxYChange + y + yChange, img.width, h);
 }
-
-//This function is going to be superfluous once the socket/osc connection is set up but it's cool to have it here for debugging
+/* For debugging, uncomment if desired
 function mouseClicked() {
 	glitch();
 }
@@ -224,7 +230,7 @@ function keyPressed() {
 	}
 
 }
-
+*/
 //These functions are mostly designed to accept triggers from node server and flip booleans. The meaty code is run in the main draw loop
 function glitch(){ //runs when specific osc code comes in or mouse is clicked
 	if (glitching == false){ //code does nothing if glitching is already happening
